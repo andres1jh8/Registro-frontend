@@ -2,7 +2,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-const URI = "http://localhost:3000/api/salidas";
+const URI = "https://registro-back.onrender.com/api/salidas";
 
 const CompEditBlog = () => {
   const { id } = useParams(); // id de la entrada relacionada

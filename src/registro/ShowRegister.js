@@ -1,8 +1,9 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
 
-const URI_ENTRADAS = "http://localhost:3000/api/entradas";
-const URI_SALIDAS = "http://localhost:3000/api/salidas";
+const URI_ENTRADAS = "https://registro-back.onrender.com/api/entradas";
+const URI_SALIDAS = "https://registro-back.onrender.com/api/salidas";
+
 
 const CompShowRegister = () => {
   const [blogs, setBlog] = useState([]);

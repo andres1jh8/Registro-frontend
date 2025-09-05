@@ -2,7 +2,7 @@ import axios from "axios";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const URI = "http://localhost:3000/api/entradas";
+const URI = "https://registro-back.onrender.com/api/entradas";
 
 const CompCreateBlog = () => {
   // --- Inicializar fecha y hora actual ---
