@@ -1,8 +1,8 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
 
-const URI_ENTRADAS = "https://registro-back.onrender.com/api/entradas";
-const URI_SALIDAS = "https://registro-back.onrender.com/api/salidas";
+const URI_ENTRADAS = "http://10.10.96.7:3000/api/entradas";
+const URI_SALIDAS = "http://10.10.96.7:3000/api/salidas";
 
 
 const CompShowRegister = () => {
