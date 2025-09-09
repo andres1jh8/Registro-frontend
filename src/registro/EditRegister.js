@@ -2,7 +2,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-const URI = "http://10.10.96.7:3000/api/salidas";
+const URI = "http://localhost:3000/api/salidas";
 
 
 const CompEditBlog = () => {
