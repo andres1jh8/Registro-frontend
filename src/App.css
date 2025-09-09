@@ -10,7 +10,7 @@
 
 /* Logo */
 .App-logo {
-  height: 50px;
+  height: 70px; /* Aumentado de 50px a 70px */
   width: auto;
   margin-right: 20px;
 }
@@ -33,22 +33,155 @@
   gap: 20px;
 }
 
-.App-nav a {
+/* Links y botones del navbar con fondo dorado */
+.App-nav a,
+.App-nav .btn-nav {
   text-decoration: none;
-  color: #fff;
+  color: #282c34; /* Texto oscuro */
   font-weight: 600;
   padding: 8px 16px;
   border-radius: 8px;
+  cursor: pointer;
   transition: background 0.3s ease, transform 0.2s ease;
+  background-color: #C2AB5E; /* Dorado institucional */
 }
 
-.App-nav a:hover {
-  background: #61dafb;
-  color: #282c34;
+.App-nav a:hover,
+.App-nav .btn-nav:hover {
+  background: #a68d4b; /* Dorado más oscuro al pasar el mouse */
   transform: translateY(-2px);
 }
 
-/* Ajuste para el contenido */
-main {
-  padding: 20px;
+/* Contenedor principal */
+.container {
+  margin-top: 20px;
 }
+
+/* Tabla */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+th, td {
+  padding: 12px;
+  text-align: center;
+  border: 1px solid #ddd;
+}
+
+th {
+  background-color: #C2AB5E; /* Dorado institucional */
+  color: #fff;
+  font-weight: bold;
+}
+
+tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+tr:hover {
+  background-color: #f1f1f1;
+}
+
+/* Botones dentro de la tabla */
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.btn-info {
+  background-color: #5bc0de;
+  color: #fff;
+}
+
+.btn-info:hover {
+  background-color: #31b0d5;
+}
+
+.btn-danger {
+  background-color: #d9534f;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background-color: #c9302c;
+}
+
+/* Formulario de filtros */
+.form-control {
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  padding: 8px;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.form-select {
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  padding: 8px;
+  width: auto;
+  margin-right: 10px;
+}
+
+/* Paginación */
+.d-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.d-flex button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  background-color: #C2AB5E; /* Dorado institucional */
+  color: #fff;
+  cursor: pointer;
+}
+
+.d-flex button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Zoom imagen */
+.zoom-img {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  cursor: zoom-out;
+}
+
+.zoom-img img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 8px;
+}
+
+/* Título central en el header */
+.App-title {
+  flex-grow: 1; /* Ocupa todo el espacio entre logo y nav */
+  text-align: center;
+  font-size: 30px;
+  font-weight: 600;
+  color: #fff; /* Blanco sobre el header */
+}
+

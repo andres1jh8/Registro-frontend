@@ -1,11 +1,10 @@
 import axios from "axios";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 const URI_ENTRADAS = "http://localhost:3000/api/entradas";
 const URI_SALIDAS = "http://localhost:3000/api/salidas";
 
-
-const CompShowRegister = () => {
+const CompShowRegister = ({ reportFnRef }) => {
   const [blogs, setBlog] = useState([]);
   const [zoomImg, setZoomImg] = useState(null);
   const [page, setPage] = useState(1);
@@ -23,6 +22,7 @@ const CompShowRegister = () => {
     "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
   ];
 
+  // Fetch meses disponibles
   useEffect(() => {
     const fetchMeses = async () => {
       try {
@@ -35,15 +35,18 @@ const CompShowRegister = () => {
     fetchMeses();
   }, []);
 
-  useEffect(() => {
-    getBlogs(page, selectedMonth, selectedYear, searchDpi, searchEmpresa);
-  }, [page, selectedMonth, selectedYear, searchDpi, searchEmpresa]);
-
-  const getBlogs = async (pageNumber, month = "", year = "", dpi = "", empresa = "") => {
+  // Función para obtener blogs con filtros
+  const getBlogs = useCallback(async (pageNumber, month = "", year = "", dpi = "", empresa = "") => {
     try {
-      const res = await axios.get(
-        `${URI_ENTRADAS}?page=${pageNumber}&month=${month}&year=${year}&dpi=${dpi}&empresa=${empresa}`
-      );
+      const res = await axios.get(`${URI_ENTRADAS}`, {
+        params: {
+          page: pageNumber,
+          month,
+          year,
+          dpi,
+          empresa,
+        },
+      });
       setBlog(res.data.data);
       setTotalPages(res.data.totalPages);
       setCurrentMonth(res.data.month);
@@ -51,8 +54,14 @@ const CompShowRegister = () => {
     } catch (error) {
       console.error("Error al cargar entradas:", error);
     }
-  };
+  }, []);
 
+  // Actualizamos blogs cuando cambian filtros o página
+  useEffect(() => {
+    getBlogs(page, selectedMonth, selectedYear, searchDpi, searchEmpresa);
+  }, [page, selectedMonth, selectedYear, searchDpi, searchEmpresa, getBlogs]);
+
+  // Eliminar entrada
   const deleteBlog = async (id) => {
     if (window.confirm("¿Seguro que deseas eliminar esta entrada?")) {
       await axios.delete(`${URI_ENTRADAS}/${id}`);
@@ -60,13 +69,12 @@ const CompShowRegister = () => {
     }
   };
 
+  // Marcar salida
   const marcarSalida = async (entradaId) => {
     try {
       const now = new Date();
-      const horaActual = now.toTimeString().slice(0, 5); // HH:MM
-
+      const horaActual = now.toTimeString().slice(0, 5);
       await axios.post(`${URI_SALIDAS}`, { entradaId, horaSalida: horaActual });
-
       getBlogs(page, selectedMonth, selectedYear, searchDpi, searchEmpresa);
     } catch (err) {
       console.error("Error al marcar salida:", err);
@@ -90,14 +98,22 @@ const CompShowRegister = () => {
   const handleSearchDpi = (e) => setSearchDpi(e.target.value);
   const handleSearchEmpresa = (e) => setSearchEmpresa(e.target.value);
 
-  const imprimirReporte = async () => {
+  // Función para imprimir reporte
+  const imprimirReporte = useCallback(async () => {
     try {
-      const res = await axios.get(
-        `${URI_ENTRADAS}?month=${selectedMonth}&year=${selectedYear}&all=true&dpi=${searchDpi}&empresa=${searchEmpresa}`
-      );
-      const todasEntradas = res.data.data;
+      const res = await axios.get(`${URI_ENTRADAS}`, {
+        params: {
+          month: selectedMonth,
+          year: selectedYear,
+          all: true,
+          dpi: searchDpi,
+          empresa: searchEmpresa
+        }
+      });
 
+      const todasEntradas = res.data.data;
       const ventana = window.open("", "_blank");
+
       const style = `
         <style>
           @media print {
@@ -115,25 +131,15 @@ const CompShowRegister = () => {
 
       let html = `
         <html>
-          <head>
-            <title>Reporte de Entradas</title>
-            ${style}
-          </head>
+          <head><title>Reporte de Entradas</title>${style}</head>
           <body>
             <h3>CONTROL DE INGRESO AL CENTRO DE DATOS EDIFICIO CONTRALORIA GENERAL DE CUENTAS ZONA 13</h3>
             <table>
               <thead>
                 <tr>
-                  <th>No.</th>
-                  <th>Fecha</th>
-                  <th>Hora Entrada</th>
-                  <th>Hora Salida</th>
-                  <th>Nombre</th>
-                  <th>DPI</th>
-                  <th>Foto DPI</th>
-                  <th>Motivo</th>
-                  <th>Empresa</th>
-                  <th>Firma</th>
+                  <th>No.</th><th>Fecha</th><th>Hora Entrada</th><th>Hora Salida</th>
+                  <th>Nombre</th><th>DPI</th><th>Foto DPI</th>
+                  <th>Motivo</th><th>Empresa</th><th>Firma</th>
                 </tr>
               </thead>
               <tbody>
@@ -157,34 +163,26 @@ const CompShowRegister = () => {
         `;
       });
 
-      html += `
-              </tbody>
-            </table>
-          </body>
-        </html>
-      `;
-
+      html += `</tbody></table></body></html>`;
       ventana.document.write(html);
       ventana.document.close();
       setTimeout(() => ventana.print(), 500);
+
     } catch (error) {
       console.error("Error al generar reporte:", error);
       alert("No se pudo generar el reporte. Intenta de nuevo.");
     }
-  };
+  }, [selectedMonth, selectedYear, searchDpi, searchEmpresa]);
+
+  // Exponemos la función al navbar
+  useEffect(() => {
+    reportFnRef.current = imprimirReporte;
+  }, [imprimirReporte, reportFnRef]);
 
   return (
     <div className="container">
       <div className="row">
         <div className="col">
-          <a href="/create" className="btn btn-primary mt-2 mb-2">
-            CREAR <i className="fa-solid fa-plus"></i>
-          </a>
-
-          <button onClick={imprimirReporte} className="btn btn-success mt-2 mb-2 ms-2">
-            IMPRIMIR REPORTE <i className="fa-solid fa-print"></i>
-          </button>
-
           {/* Filtros de búsqueda */}
           <div className="mb-3 d-flex flex-wrap gap-2">
             <div>
@@ -216,21 +214,13 @@ const CompShowRegister = () => {
           <table className="table table-striped-columns">
             <thead className="table-primary">
               <tr>
-                <th>No.</th>
-                <th>Fecha</th>
-                <th>Hora Entrada</th>
-                <th>Hora Salida</th>
-                <th>Nombre</th>
-                <th>DPI</th>
-                <th>Foto DPI</th>
-                <th>Motivo</th>
-                <th>Empresa</th>
-                <th>Firma</th>
-                <th>Actions</th>
+                <th>No.</th><th>Fecha</th><th>Hora Entrada</th><th>Hora Salida</th>
+                <th>Nombre</th><th>DPI</th><th>Foto DPI</th>
+                <th>Motivo</th><th>Empresa</th><th>Firma</th><th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {blogs.map((blog) => {
+              {blogs.map(blog => {
                 const ultimaSalida = blog.salidas?.length ? blog.salidas[blog.salidas.length - 1].horaSalida : "";
                 return (
                   <tr key={blog._id}>
@@ -279,13 +269,9 @@ const CompShowRegister = () => {
           </table>
 
           <div className="d-flex justify-content-between mb-3">
-            <button className="btn btn-secondary" onClick={handlePrevPage} disabled={page === 1}>
-              Mes anterior
-            </button>
+            <button className="btn btn-secondary" onClick={handlePrevPage} disabled={page === 1}>Mes anterior</button>
             <span>Página {page} de {totalPages}</span>
-            <button className="btn btn-secondary" onClick={handleNextPage} disabled={page === totalPages}>
-              Mes siguiente
-            </button>
+            <button className="btn btn-secondary" onClick={handleNextPage} disabled={page === totalPages}>Mes siguiente</button>
           </div>
 
           {zoomImg && (
@@ -305,11 +291,7 @@ const CompShowRegister = () => {
                 cursor: "zoom-out"
               }}
             >
-              <img
-                src={zoomImg}
-                alt="Zoom"
-                style={{ maxWidth: "90%", maxHeight: "90%", borderRadius: "8px" }}
-              />
+              <img src={zoomImg} alt="Zoom" style={{ maxWidth: "90%", maxHeight: "90%", borderRadius: "8px" }} />
             </div>
           )}
         </div>

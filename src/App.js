@@ -1,32 +1,44 @@
 import logo from './logo.png';
 import './App.css';
 
-// importamos los componentes 
-import CompShowBlogs from './registro/ShowRegister';
+import CompShowRegister from './registro/ShowRegister';
 import CompCreateBlog from './registro/CreateRegister';
-import CompEditBlog from './registro/EditRegister';
+import ReportContext from './ReportContext';
 
-// importamos el router
 import { BrowserRouter, Route, Routes, Link } from 'react-router-dom';
+import { useRef } from 'react';
 
 function App() {
+  // Guardamos la función imprimirReporte en una referencia
+  const reportFnRef = useRef(() => {});
+
   return (
     <div className="App">
       <BrowserRouter>
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <nav className="App-nav">
-            <Link to="/">Inicio</Link>
-            <Link to="/create">Crear</Link>
-            <Link to="/edit/1">Editar</Link>
-          </nav>
-        </header>
+        <ReportContext.Provider value={{ imprimirReporte: () => reportFnRef.current() }}>
+          <header className="App-header">
+            <img src={logo} className="App-logo" alt="logo" />
+            
+            {/* Texto central */}
+            <div className="App-title">
+              Registro Visitas
+            </div>
 
-        <Routes>
-          <Route path="/" element={<CompShowBlogs />} />
-          <Route path="/create" element={<CompCreateBlog />} />
-          <Route path="/edit/:id" element={<CompEditBlog />} />
-        </Routes>
+            <nav className="App-nav">
+              <Link to="/">Inicio</Link>
+              <Link to="/create">Crear</Link>
+              <button className="btn-nav" onClick={() => reportFnRef.current()}>
+                Reporte
+              </button>
+            </nav>
+          </header>
+
+
+          <Routes>
+            <Route path="/" element={<CompShowRegister reportFnRef={reportFnRef} />} />
+            <Route path="/create" element={<CompCreateBlog />} />
+          </Routes>
+        </ReportContext.Provider>
       </BrowserRouter>
     </div>
   );
