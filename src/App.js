@@ -9,7 +9,6 @@ import { BrowserRouter, Route, Routes, Link } from 'react-router-dom';
 import { useRef } from 'react';
 
 function App() {
-  // Guardamos la función imprimirReporte en una referencia
   const reportFnRef = useRef(() => {});
 
   return (
@@ -17,22 +16,27 @@ function App() {
       <BrowserRouter>
         <ReportContext.Provider value={{ imprimirReporte: () => reportFnRef.current() }}>
           <header className="App-header">
-            <img src={logo} className="App-logo" alt="logo" />
-            
-            {/* Texto central */}
-            <div className="App-title">
-              Registro Visitas
+            {/* Logo */}
+            <div className="header-left">
+              <img src={logo} className="App-logo" alt="logo" />
             </div>
 
-            <nav className="App-nav">
-              <Link to="/">Inicio</Link>
-              <Link to="/create">Crear</Link>
-              <button className="btn-nav" onClick={() => reportFnRef.current()}>
-                Reporte
-              </button>
-            </nav>
-          </header>
+            {/* Título */}
+            <div className="header-center">
+              <h1 className="App-title">Registro Visitas</h1>
+            </div>
 
+            {/* Navegación */}
+            <div className="header-right">
+              <nav className="App-nav">
+                <Link to="/">Inicio</Link>
+                <Link to="/create">Crear</Link>
+                <button className="btn-nav" onClick={() => reportFnRef.current()}>
+                  Reporte
+                </button>
+              </nav>
+            </div>
+          </header>
 
           <Routes>
             <Route path="/" element={<CompShowRegister reportFnRef={reportFnRef} />} />

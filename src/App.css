@@ -1,60 +1,96 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;600&display=swap');
 
-.App {
-  text-align: center;
+/* Global */
+html, body, #root {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
   font-family: 'Roboto', sans-serif;
   background-color: #f4f6f9;
-  min-height: 100vh;
+}
+
+/* App principal */
+.App {
+  width: 100%;
+  max-width: 100%;
   margin: 0;
+  padding: 0;
+  text-align: center;
+  min-height: 100vh;
 }
 
-/* Logo */
-.App-logo {
-  height: 70px; /* Aumentado de 50px a 70px */
-  width: auto;
-  margin-right: 20px;
-}
-
-/* Header con degradado */
+/* Header con degradado y reorganizado */
 .App-header {
-  background: linear-gradient(90deg, #282c34 0%, #3b3f58 100%);
-  min-height: 12vh;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  padding: 0 40px;
+  padding: 10px 20px;
+  background: linear-gradient(90deg, #282c34 0%, #3b3f58 100%);
   color: white;
   box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  border-radius: 0 0 10px 10px;
 }
 
-/* Menú de navegación */
+.header-left, .header-center, .header-right {
+  display: flex;
+  align-items: center;
+}
+
+.header-center {
+  flex: 1;
+  justify-content: center;
+}
+
+.App-logo {
+  height: 60px;
+  width: auto;
+  margin-right: 15px;
+}
+
+.App-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #fff;
+  min-width: 150px;
+  margin: 10px 0;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
 .App-nav {
   display: flex;
-  gap: 20px;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
-/* Links y botones del navbar con fondo dorado */
 .App-nav a,
 .App-nav .btn-nav {
   text-decoration: none;
-  color: #282c34; /* Texto oscuro */
+  color: #282c34;
   font-weight: 600;
-  padding: 8px 16px;
+  padding: 6px 12px;
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.3s ease, transform 0.2s ease;
-  background-color: #C2AB5E; /* Dorado institucional */
+  background-color: #C2AB5E;
 }
 
 .App-nav a:hover,
 .App-nav .btn-nav:hover {
-  background: #a68d4b; /* Dorado más oscuro al pasar el mouse */
+  background: #a68d4b;
   transform: translateY(-2px);
+}
+
+.btn-nav {
+  border: none;
 }
 
 /* Contenedor principal */
 .container {
   margin-top: 20px;
+  width: 100%;
 }
 
 /* Tabla */
@@ -69,13 +105,14 @@ table {
 }
 
 th, td {
-  padding: 12px;
+  padding: 10px;
   text-align: center;
   border: 1px solid #ddd;
+  font-size: 0.9rem;
 }
 
 th {
-  background-color: #C2AB5E; /* Dorado institucional */
+  background-color: #C2AB5E;
   color: #fff;
   font-weight: bold;
 }
@@ -88,13 +125,13 @@ tr:hover {
   background-color: #f1f1f1;
 }
 
-/* Botones dentro de la tabla */
+/* Botones */
 .btn {
-  padding: 8px 16px;
+  padding: 6px 12px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   transition: background-color 0.3s;
 }
 
@@ -120,17 +157,19 @@ tr:hover {
 .form-control {
   border-radius: 4px;
   border: 1px solid #ccc;
-  padding: 8px;
+  padding: 6px;
   width: 100%;
   margin-bottom: 10px;
+  font-size: 0.9rem;
 }
 
 .form-select {
   border-radius: 4px;
   border: 1px solid #ccc;
-  padding: 8px;
+  padding: 6px;
   width: auto;
   margin-right: 10px;
+  font-size: 0.9rem;
 }
 
 /* Paginación */
@@ -142,10 +181,10 @@ tr:hover {
 }
 
 .d-flex button {
-  padding: 8px 16px;
+  padding: 6px 12px;
   border: none;
   border-radius: 4px;
-  background-color: #C2AB5E; /* Dorado institucional */
+  background-color: #C2AB5E;
   color: #fff;
   cursor: pointer;
 }
@@ -171,17 +210,58 @@ tr:hover {
 }
 
 .zoom-img img {
-  max-width: 90%;
-  max-height: 90%;
+  max-width: 80%;
+  max-height: 80%;
   border-radius: 8px;
 }
 
-/* Título central en el header */
-.App-title {
-  flex-grow: 1; /* Ocupa todo el espacio entre logo y nav */
-  text-align: center;
-  font-size: 30px;
-  font-weight: 600;
-  color: #fff; /* Blanco sobre el header */
+/* Responsive */
+@media (max-width: 768px) {
+  .App-title {
+    font-size: 1.4rem;
+  }
+
+  .App-logo {
+    height: 50px;
+  }
+
+  .App-nav a,
+  .btn-nav {
+    font-size: 0.85rem;
+    padding: 4px 8px;
+  }
+
+  th, td {
+    padding: 6px;
+    font-size: 0.8rem;
+  }
+
+  .form-control, .form-select {
+    font-size: 0.85rem;
+    padding: 4px;
+  }
+
+  .d-flex button {
+    padding: 5px 10px;
+    font-size: 0.85rem;
+  }
 }
 
+@media (max-width: 480px) {
+  .App-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .App-title {
+    text-align: left;
+    margin: 10px 0;
+  }
+
+  .App-nav {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 5px;
+    margin-bottom: 10px;
+  }
+}

@@ -2,13 +2,12 @@ import axios from "axios";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const URI = `${process.env.REACT_APP_API_URL}/api/entradas`;;
+const URI = `${process.env.REACT_APP_API_URL}/api/entradas`;
 
 const CompCreateBlog = () => {
-  // --- Inicializar fecha y hora actual ---
   const now = new Date();
-  const formatoFecha = now.toISOString().slice(0, 10); // YYYY-MM-DD
-  const formatoHora = now.toTimeString().slice(0, 5); // HH:MM
+  const formatoFecha = now.toISOString().slice(0, 10);
+  const formatoHora = now.toTimeString().slice(0, 5);
 
   const [fecha, setFecha] = useState(formatoFecha);
   const [horaEntrada, setHoraEntrada] = useState(formatoHora);
@@ -26,7 +25,7 @@ const CompCreateBlog = () => {
   const videoRef = useRef(null);
   const navigate = useNavigate();
 
-  // --- Inicializar canvas firma con fondo blanco ---
+  // --- Inicializar canvas ---
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -34,27 +33,23 @@ const CompCreateBlog = () => {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }, []);
 
-  // --- Manejar cámara ---
+  // --- Cámara ---
   useEffect(() => {
     if (useCamera) {
       navigator.mediaDevices
         .getUserMedia({ video: true })
         .then((stream) => {
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-          }
+          if (videoRef.current) videoRef.current.srcObject = stream;
         })
         .catch((err) => console.error("Error accediendo a la cámara:", err));
     } else {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const tracks = videoRef.current.srcObject.getTracks();
-        tracks.forEach((track) => track.stop());
+      if (videoRef.current?.srcObject) {
+        videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
         videoRef.current.srcObject = null;
       }
     }
   }, [useCamera]);
 
-  // Capturar foto desde cámara
   const capturePhoto = () => {
     const video = videoRef.current;
     const canvas = document.createElement("canvas");
@@ -62,14 +57,13 @@ const CompCreateBlog = () => {
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
     canvas.toBlob((blob) => {
       setFotoDPI(blob);
       setPreviewDPI(URL.createObjectURL(blob));
     }, "image/jpeg");
   };
 
-  // --- Validación campo por campo ---
+  // --- Validaciones ---
   const validarCampo = (name, value) => {
     const now = new Date();
     let error = "";
@@ -82,9 +76,9 @@ const CompCreateBlog = () => {
       case "horaEntrada":
         if (!value) error = "Hora de entrada obligatoria";
         else if (fecha === now.toISOString().slice(0, 10)) {
-          const [hora, min] = value.split(":");
+          const [h, m] = value.split(":");
           const horaDate = new Date();
-          horaDate.setHours(hora, min, 0, 0);
+          horaDate.setHours(h, m, 0, 0);
           if (horaDate > now) error = "No puedes poner una hora futura";
         }
         break;
@@ -107,35 +101,25 @@ const CompCreateBlog = () => {
       default:
         break;
     }
-
     setErrors((prev) => ({ ...prev, [name]: error }));
   };
 
-  // --- Validación completa antes de enviar ---
   const validarCampos = () => {
     const newErrors = {};
-    const now = new Date();
 
-    if (!fecha) newErrors.fecha = "Fecha obligatoria";
-    else if (new Date(fecha) > now) newErrors.fecha = "No puedes poner una fecha futura";
+    validarCampo("fecha", fecha);
+    validarCampo("horaEntrada", horaEntrada);
+    validarCampo("nombre", nombre);
+    validarCampo("dpi", dpi);
+    validarCampo("motivo", motivo);
+    validarCampo("empresa", empresa);
+    validarCampo("firma", firmaBase64);
 
-    if (!horaEntrada) newErrors.horaEntrada = "Hora obligatoria";
-    else if (fecha === now.toISOString().slice(0, 10)) {
-      const [hora, min] = horaEntrada.split(":");
-      const horaDate = new Date();
-      horaDate.setHours(hora, min, 0, 0);
-      if (horaDate > now) newErrors.horaEntrada = "No puedes poner una hora futura";
-    }
+    // Filtramos solo los que tengan error
+    Object.keys(errors).forEach((key) => {
+      if (errors[key]) newErrors[key] = errors[key];
+    });
 
-    if (!nombre) newErrors.nombre = "Nombre obligatorio";
-    if (!dpi) newErrors.dpi = "DPI obligatorio";
-    else if (!/^\d{13}$/.test(dpi)) newErrors.dpi = "El DPI debe tener 13 dígitos";
-
-    if (!motivo) newErrors.motivo = "Motivo obligatorio";
-    if (!empresa) newErrors.empresa = "Empresa obligatoria";
-    if (!firmaBase64) newErrors.firma = "Firma obligatoria";
-
-    setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
@@ -147,14 +131,14 @@ const CompCreateBlog = () => {
     ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     setFirmaBase64("");
-    validarCampo("firma", "");
+    setErrors((prev) => ({ ...prev, firma: "Firma obligatoria" }));
   };
 
   const saveFirma = () => {
     const canvas = canvasRef.current;
     const dataURL = canvas.toDataURL("image/png");
     setFirmaBase64(dataURL);
-    validarCampo("firma", dataURL);
+    setErrors((prev) => ({ ...prev, firma: "" }));
   };
 
   const startDrawing = (e) => {
@@ -164,24 +148,41 @@ const CompCreateBlog = () => {
     ctx.lineWidth = 2;
     ctx.lineCap = "round";
     ctx.beginPath();
+
     const rect = canvas.getBoundingClientRect();
-    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    const getPos = (ev) => {
+      if (ev.touches) {
+        return {
+          x: ev.touches[0].clientX - rect.left,
+          y: ev.touches[0].clientY - rect.top,
+        };
+      } else {
+        return { x: ev.clientX - rect.left, y: ev.clientY - rect.top };
+      }
+    };
+
+    const pos = getPos(e);
+    ctx.moveTo(pos.x, pos.y);
 
     const draw = (ev) => {
-      ctx.lineTo(ev.clientX - rect.left, ev.clientY - rect.top);
+      const p = getPos(ev);
+      ctx.lineTo(p.x, p.y);
       ctx.stroke();
     };
 
     const stop = () => {
       canvas.removeEventListener("mousemove", draw);
       canvas.removeEventListener("mouseup", stop);
+      canvas.removeEventListener("touchmove", draw);
+      canvas.removeEventListener("touchend", stop);
     };
 
     canvas.addEventListener("mousemove", draw);
     canvas.addEventListener("mouseup", stop);
+    canvas.addEventListener("touchmove", draw, { passive: false });
+    canvas.addEventListener("touchend", stop);
   };
 
-  // --- Foto DPI desde archivo ---
   const handleDPIChange = (e) => {
     const file = e.target.files[0];
     setFotoDPI(file);
@@ -194,10 +195,8 @@ const CompCreateBlog = () => {
     }
   };
 
-  // --- Enviar formulario ---
   const store = async (e) => {
     e.preventDefault();
-
     if (!validarCampos()) {
       alert("Corrige los errores antes de guardar");
       return;
@@ -212,18 +211,11 @@ const CompCreateBlog = () => {
       formData.append("motivo", motivo);
       formData.append("empresa", empresa);
       formData.append("firma", firmaBase64);
+      if (fotoDPI) formData.append("fotoDPI", fotoDPI);
 
-      if (fotoDPI) {
-        formData.append("fotoDPI", fotoDPI);
-      }
-
-      await axios.post(URI, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
+      await axios.post(URI, formData, { headers: { "Content-Type": "multipart/form-data" } });
       alert("Entrada registrada con éxito");
       navigate("/");
-
     } catch (error) {
       console.error("Error al guardar entrada:", error);
       alert("Error al guardar entrada. Revisa los datos.");
@@ -231,79 +223,66 @@ const CompCreateBlog = () => {
   };
 
   return (
-    <div className="container">
-      <h3>Crear Registro</h3>
-      <form onSubmit={store}>
+    <div className="container py-3">
+      <h3 className="mb-4 text-center">Crear Registro</h3>
+      <form onSubmit={store} className="d-flex flex-column gap-3" style={{ maxWidth: "500px", margin: "0 auto" }}>
         {/* Fecha */}
-        <div className="mb-3">
-          <label className="form-label">Fecha</label>
+        <div className="form-group">
+          <label>Fecha</label>
           <input
             type="date"
             className={`form-control ${errors.fecha ? "is-invalid" : ""}`}
             value={fecha}
-            onChange={(e) => {
-              setFecha(e.target.value);
-              validarCampo("fecha", e.target.value);
-            }}
+            onChange={(e) => { setFecha(e.target.value); validarCampo("fecha", e.target.value); }}
           />
           {errors.fecha && <div className="invalid-feedback">{errors.fecha}</div>}
         </div>
 
         {/* Hora */}
-        <div className="mb-3">
-          <label className="form-label">Hora Entrada</label>
+        <div className="form-group">
+          <label>Hora Entrada</label>
           <input
             type="time"
             className={`form-control ${errors.horaEntrada ? "is-invalid" : ""}`}
             value={horaEntrada}
-            onChange={(e) => {
-              setHoraEntrada(e.target.value);
-              validarCampo("horaEntrada", e.target.value);
-            }}
+            onChange={(e) => { setHoraEntrada(e.target.value); validarCampo("horaEntrada", e.target.value); }}
           />
           {errors.horaEntrada && <div className="invalid-feedback">{errors.horaEntrada}</div>}
         </div>
 
         {/* Nombre */}
-        <div className="mb-3">
-          <label className="form-label">Nombre</label>
+        <div className="form-group">
+          <label>Nombre</label>
           <input
             type="text"
             className={`form-control ${errors.nombre ? "is-invalid" : ""}`}
             value={nombre}
-            onChange={(e) => {
-              setNombre(e.target.value);
-              validarCampo("nombre", e.target.value);
-            }}
+            onChange={(e) => { setNombre(e.target.value); validarCampo("nombre", e.target.value); }}
           />
           {errors.nombre && <div className="invalid-feedback">{errors.nombre}</div>}
         </div>
 
         {/* DPI */}
-        <div className="mb-3">
-          <label className="form-label">DPI</label>
+        <div className="form-group">
+          <label>DPI</label>
           <input
             type="text"
             className={`form-control ${errors.dpi ? "is-invalid" : ""}`}
             value={dpi}
-            onChange={(e) => {
-              setDPI(e.target.value);
-              validarCampo("dpi", e.target.value);
-            }}
+            onChange={(e) => { setDPI(e.target.value); validarCampo("dpi", e.target.value); }}
           />
           {errors.dpi && <div className="invalid-feedback">{errors.dpi}</div>}
         </div>
 
         {/* Foto DPI */}
-        <div className="mb-3">
-          <label className="form-label">Foto DPI</label>
-          <div className="d-flex gap-2">
+        <div className="form-group">
+          <label>Foto DPI</label>
+          <div className="d-flex flex-wrap gap-2">
             <input type="file" className="form-control" accept="image/*" onChange={handleDPIChange} />
             <button type="button" className="btn btn-secondary" onClick={() => setUseCamera(!useCamera)}>
               {useCamera ? "Usar archivo" : "Usar cámara"}
             </button>
           </div>
-
           {useCamera && (
             <div className="mt-2">
               <video ref={videoRef} autoPlay style={{ width: "100%", maxWidth: "300px" }}></video>
@@ -312,80 +291,57 @@ const CompCreateBlog = () => {
               </button>
             </div>
           )}
-
           {previewDPI && (
-            <img
-              src={previewDPI}
-              alt="Preview DPI"
-              style={{ width: "120px", height: "120px", objectFit: "cover", marginTop: "5px" }}
-            />
+            <img src={previewDPI} alt="Preview DPI" style={{ width: "120px", height: "120px", objectFit: "cover", marginTop: "5px" }} />
           )}
         </div>
 
         {/* Motivo */}
-        <div className="mb-3">
-          <label className="form-label">Motivo</label>
+        <div className="form-group">
+          <label>Motivo</label>
           <input
             type="text"
             className={`form-control ${errors.motivo ? "is-invalid" : ""}`}
             value={motivo}
-            onChange={(e) => {
-              setMotivo(e.target.value);
-              validarCampo("motivo", e.target.value);
-            }}
+            onChange={(e) => { setMotivo(e.target.value); validarCampo("motivo", e.target.value); }}
           />
           {errors.motivo && <div className="invalid-feedback">{errors.motivo}</div>}
         </div>
 
         {/* Empresa */}
-        <div className="mb-3">
-          <label className="form-label">Empresa</label>
+        <div className="form-group">
+          <label>Empresa</label>
           <input
             type="text"
             className={`form-control ${errors.empresa ? "is-invalid" : ""}`}
             value={empresa}
-            onChange={(e) => {
-              setEmpresa(e.target.value);
-              validarCampo("empresa", e.target.value);
-            }}
+            onChange={(e) => { setEmpresa(e.target.value); validarCampo("empresa", e.target.value); }}
           />
           {errors.empresa && <div className="invalid-feedback">{errors.empresa}</div>}
         </div>
 
         {/* Firma */}
-        <div className="mb-3">
-          <label className="form-label">Firma</label>
+        <div className="form-group">
+          <label>Firma</label>
           <canvas
             ref={canvasRef}
             width={400}
             height={150}
-            style={{ border: "1px solid #000", backgroundColor: "#fff" }}
+            style={{ border: "1px solid #000", backgroundColor: "#fff", width: "100%", maxWidth: "100%" }}
             onMouseDown={startDrawing}
+            onTouchStart={startDrawing}
           ></canvas>
-
-          <div className="mt-2">
-            <button type="button" className="btn btn-secondary me-2" onClick={clearCanvas}>
-              Limpiar Firma
-            </button>
-            <button type="button" className="btn btn-success" onClick={saveFirma}>
-              Guardar Firma
-            </button>
+          <div className="mt-2 d-flex gap-2">
+            <button type="button" className="btn btn-secondary" onClick={clearCanvas}>Limpiar Firma</button>
+            <button type="button" className="btn btn-success" onClick={saveFirma}>Guardar Firma</button>
           </div>
-
           {firmaBase64 && (
-            <img
-              src={firmaBase64}
-              alt="Preview Firma"
-              style={{ width: "200px", height: "100px", objectFit: "contain", marginTop: "5px" }}
-            />
+            <img src={firmaBase64} alt="Preview Firma" style={{ width: "200px", height: "100px", objectFit: "contain", marginTop: "5px" }} />
           )}
-
           {errors.firma && <div className="text-danger mt-1">{errors.firma}</div>}
         </div>
 
-        <button type="submit" className="btn btn-primary mt-3">
-          Guardar Entrada
-        </button>
+        <button type="submit" className="btn btn-primary mt-3">Guardar Entrada</button>
       </form>
     </div>
   );
