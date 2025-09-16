@@ -2,7 +2,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-const URI = "http://localhost:3000/api/salidas";
+const URI = `${process.env.REACT_APP_API_URL}/api/salidas`;
 
 
 const CompEditBlog = () => {
@@ -19,7 +19,7 @@ const CompEditBlog = () => {
         const res = await axios.get(`${URI}/entrada/${id}`);
         if (res.data && res.data.horaSalida) {
           setHoraSalida(res.data.horaSalida);
-        } else {
+        } else { 
           // Si no hay salida, se inicializa con la hora actual
           const now = new Date();
           const horaActual = now.toTimeString().slice(0, 5); // HH:MM

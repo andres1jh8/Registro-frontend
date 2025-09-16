@@ -1,8 +1,8 @@
 import axios from "axios";
 import { useState, useEffect, useCallback } from "react";
 
-const URI_ENTRADAS = "http://localhost:3000/api/entradas";
-const URI_SALIDAS = "http://localhost:3000/api/salidas";
+const URI_ENTRADAS = `${process.env.REACT_APP_API_URL}/api/entradas`;
+const URI_SALIDAS = `${process.env.REACT_APP_API_URL}/api/salidas`;
 
 const CompShowRegister = ({ reportFnRef }) => {
   const [blogs, setBlog] = useState([]);
@@ -31,7 +31,7 @@ const CompShowRegister = ({ reportFnRef }) => {
       } catch (err) {
         console.error("Error al cargar meses:", err);
       }
-    };
+    };  
     fetchMeses();
   }, []);
 

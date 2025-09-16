@@ -2,7 +2,7 @@ import axios from "axios";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const URI = "http://localhost:3000/api/entradas";
+const URI = `${process.env.REACT_APP_API_URL}/api/entradas`;;
 
 const CompCreateBlog = () => {
   // --- Inicializar fecha y hora actual ---
