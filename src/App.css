@@ -20,77 +20,144 @@ html, body, #root {
   min-height: 100vh;
 }
 
-/* Header con degradado y reorganizado */
+/* Header */
 .App-header {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  padding: 10px 20px;
+  justify-content: center;
+  padding: 20px 20px;
   background: linear-gradient(90deg, #282c34 0%, #3b3f58 100%);
   color: white;
   box-shadow: 0 4px 10px rgba(0,0,0,0.2);
   border-radius: 0 0 10px 10px;
+  position: relative;
+  z-index: 101;
 }
 
-.header-left, .header-center, .header-right {
+.header-left {
+  position: absolute;
+  left: 20px;
   display: flex;
   align-items: center;
 }
 
 .header-center {
-  flex: 1;
+  display: flex;
   justify-content: center;
+  flex: 1;
+}
+
+.header-right {
+  position: absolute;
+  right: 20px;
+  display: flex;
+  align-items: center;
 }
 
 .App-logo {
-  height: 60px;
+  height: 70px;
   width: auto;
   margin-right: 15px;
 }
 
 .App-title {
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: 700;
   color: #fff;
-  min-width: 150px;
-  margin: 10px 0;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
 }
 
-.App-nav {
+/* Contenedor principal */
+.App-body {
   display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  align-items: center;
+  min-height: calc(100vh - 110px);
 }
 
-.App-nav a,
-.App-nav .btn-nav {
+/* Sidebar */
+.sidebar {
+  width: 60px; /* Cerrado por defecto */
+  background-color: #282c34;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  overflow-y: auto;
+  z-index: 100;
+  padding: 20px 10px;
+  transition: width 0.3s ease;
+}
+
+/* Mostrar sidebar al pasar el mouse */
+.sidebar:hover {
+  width: 200px;
+}
+
+/* Contenedor de botones: empieza debajo del header */
+.sidebar .btn-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 110px; /* Altura del header */
+}
+
+/* Botones */
+.sidebar .btn-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   text-decoration: none;
   color: #282c34;
+  background-color: #C2AB5E;
   font-weight: 600;
   padding: 6px 12px;
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.3s ease, transform 0.2s ease;
-  background-color: #C2AB5E;
 }
 
-.App-nav a:hover,
-.App-nav .btn-nav:hover {
-  background: #a68d4b;
-  transform: translateY(-2px);
+.sidebar .btn-nav span {
+  display: none; /* Texto oculto por defecto */
 }
 
-.btn-nav {
-  border: none;
+.sidebar:hover .btn-nav span {
+  display: inline; /* Mostrar texto al hover */
 }
 
-/* Contenedor principal */
-.container {
-  margin-top: 20px;
-  width: 100%;
+.sidebar .btn-nav:hover {
+  background-color: #a68d4b;
+  transform: translateX(3px);
+}
+
+/* Ajuste cuando el sidebar está cerrado */
+.sidebar .btn-nav {
+  justify-content: center;
+}
+
+.sidebar .btn-nav .btn-icon {
+  margin: 0;
+  display: block;
+}
+
+/* Main content ajustado al sidebar */
+.main-content {
+  flex: 1;
+  margin-left: 60px; /* ancho del sidebar cerrado */
+  padding: 20px;
+  transition: margin-left 0.3s ease;
+}
+
+.sidebar:hover + .main-content {
+  margin-left: 200px; /* ancho del sidebar abierto */
+}
+
+/* Iconos */
+.btn-icon {
+  width: 24px;
+  height: 24px;
+  display: block; /* Asegura centrado vertical */
 }
 
 /* Tabla */
@@ -153,22 +220,11 @@ tr:hover {
   background-color: #c9302c;
 }
 
-/* Formulario de filtros */
-.form-control {
+/* Formulario */
+.form-control, .form-select {
   border-radius: 4px;
   border: 1px solid #ccc;
   padding: 6px;
-  width: 100%;
-  margin-bottom: 10px;
-  font-size: 0.9rem;
-}
-
-.form-select {
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  padding: 6px;
-  width: auto;
-  margin-right: 10px;
   font-size: 0.9rem;
 }
 
@@ -225,43 +281,18 @@ tr:hover {
     height: 50px;
   }
 
-  .App-nav a,
-  .btn-nav {
-    font-size: 0.85rem;
-    padding: 4px 8px;
+  .sidebar {
+    width: 50px;
+    top: 80px;
+    padding: 10px;
   }
 
-  th, td {
-    padding: 6px;
-    font-size: 0.8rem;
+  .main-content {
+    margin-left: 0;
+    padding: 10px;
   }
 
-  .form-control, .form-select {
-    font-size: 0.85rem;
-    padding: 4px;
-  }
-
-  .d-flex button {
-    padding: 5px 10px;
-    font-size: 0.85rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .App-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .App-title {
-    text-align: left;
-    margin: 10px 0;
-  }
-
-  .App-nav {
-    width: 100%;
-    justify-content: flex-start;
-    gap: 5px;
-    margin-bottom: 10px;
+  .sidebar:hover {
+    width: 150px;
   }
 }

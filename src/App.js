@@ -1,6 +1,10 @@
 import logo from './logo.png';
 import './App.css';
 
+import homeIcon from './assets/icons/home.svg';
+import createIcon from './assets/icons/create.svg';
+import reportIcon from './assets/icons/report.svg';
+
 import CompShowRegister from './registro/ShowRegister';
 import CompCreateBlog from './registro/CreateRegister';
 import ReportContext from './ReportContext';
@@ -15,34 +19,50 @@ function App() {
     <div className="App">
       <BrowserRouter>
         <ReportContext.Provider value={{ imprimirReporte: () => reportFnRef.current() }}>
+
+          {/* Header */}
           <header className="App-header">
-            
-            {/* Logo */}
             <div className="header-left">
               <img src={logo} className="App-logo" alt="logo" />
             </div>
-
-            {/* Título */}
             <div className="header-center">
               <h1 className="App-title">Registro Visitas</h1>
             </div>
-
-            {/* Navegación */}
             <div className="header-right">
-              <nav className="App-nav">
-                <Link to="/">Inicio</Link>
-                <Link to="/create">Crear</Link>
-                <button className="btn-nav" onClick={() => reportFnRef.current()}>
-                  Reporte
-                </button>
-              </nav>
+              {/* Futuro perfil usuario */}
             </div>
           </header>
 
-          <Routes>
-            <Route path="/" element={<CompShowRegister reportFnRef={reportFnRef} />} />
-            <Route path="/create" element={<CompCreateBlog />} />
-          </Routes>
+          {/* Body con sidebar y contenido */}
+          <div className="App-body">
+
+            {/* Sidebar */}
+            <aside className="sidebar">
+              <div className="btn-container">
+                <Link to="/" className="btn-nav">
+                  <img src={homeIcon} alt="Inicio" className="btn-icon" />
+                  <span>Inicio</span>
+                </Link>
+                <Link to="/create" className="btn-nav">
+                  <img src={createIcon} alt="Crear" className="btn-icon" />
+                  <span>Crear</span>
+                </Link>
+                <button className="btn-nav" onClick={() => reportFnRef.current()}>
+                  <img src={reportIcon} alt="Reporte" className="btn-icon" />
+                  <span>Reporte</span>
+                </button>
+              </div>
+            </aside>
+
+            {/* Contenido principal */}
+            <main className="main-content">
+              <Routes>
+                <Route path="/" element={<CompShowRegister reportFnRef={reportFnRef} />} />
+                <Route path="/create" element={<CompCreateBlog />} />
+              </Routes>
+            </main>
+          </div>
+
         </ReportContext.Provider>
       </BrowserRouter>
     </div>

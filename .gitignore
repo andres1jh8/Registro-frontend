@@ -21,3 +21,8 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# certificados
+cert/*.key
+cert/*.crt
+cert/*.pem
