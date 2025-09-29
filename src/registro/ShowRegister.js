@@ -1,11 +1,8 @@
-import axios from "axios";
+import api from "../utils/axios";
 import { useState, useEffect, useCallback } from "react";
 
-const URI_ENTRADAS = `${process.env.REACT_APP_API_URL}/api/entradas`;
-const URI_SALIDAS = `${process.env.REACT_APP_API_URL}/api/salidas`;
-
 const CompShowRegister = ({ reportFnRef }) => {
-  const [blogs, setBlog] = useState([]);
+  const [entradas, setEntradas] = useState([]);
   const [zoomImg, setZoomImg] = useState(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -16,16 +13,19 @@ const CompShowRegister = ({ reportFnRef }) => {
   const [mesesDisponibles, setMesesDisponibles] = useState([]);
   const [searchDpi, setSearchDpi] = useState("");
   const [searchEmpresa, setSearchEmpresa] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   const monthNames = [
     "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
     "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
   ];
 
+  // Cargar meses disponibles
   useEffect(() => {
     const fetchMeses = async () => {
       try {
-        const res = await axios.get(`${URI_ENTRADAS}/meses`);
+        const res = await api.get("/entradas/meses");
         setMesesDisponibles(res.data.meses);
       } catch (err) {
         console.error("Error al cargar meses:", err);
@@ -34,28 +34,37 @@ const CompShowRegister = ({ reportFnRef }) => {
     fetchMeses();
   }, []);
 
-  const getBlogs = useCallback(async (pageNumber, month = "", year = "", dpi = "", empresa = "") => {
+  // Función para cargar entradas
+  const getEntradas = useCallback(async (pageNumber = 1) => {
     try {
-      const res = await axios.get(`${URI_ENTRADAS}`, {
-        params: { page: pageNumber, month, year, dpi, empresa },
+      const res = await api.get("/entradas", {
+        params: {
+          page: pageNumber,
+          month: selectedMonth,
+          year: selectedYear,
+          dpi: searchDpi,
+          empresa: searchEmpresa,
+          startDate: startDate || undefined,
+          endDate: endDate || undefined
+        },
       });
-      setBlog(res.data.data);
+      setEntradas(res.data.data);
       setTotalPages(res.data.totalPages);
-      setCurrentMonth(res.data.month);
-      setCurrentYear(res.data.year);
+      setCurrentMonth(res.data.filtros?.month);
+      setCurrentYear(res.data.filtros?.year);
     } catch (error) {
       console.error("Error al cargar entradas:", error);
     }
-  }, []);
+  }, [selectedMonth, selectedYear, searchDpi, searchEmpresa, startDate, endDate]);
 
   useEffect(() => {
-    getBlogs(page, selectedMonth, selectedYear, searchDpi, searchEmpresa);
-  }, [page, selectedMonth, selectedYear, searchDpi, searchEmpresa, getBlogs]);
+    getEntradas(page);
+  }, [page, getEntradas]);
 
-  const deleteBlog = async (id) => {
+  const deleteEntrada = async (id) => {
     if (window.confirm("¿Seguro que deseas eliminar esta entrada?")) {
-      await axios.delete(`${URI_ENTRADAS}/${id}`);
-      getBlogs(page, selectedMonth, selectedYear, searchDpi, searchEmpresa);
+      await api.delete(`/entradas/${id}`);
+      getEntradas(page);
     }
   };
 
@@ -63,8 +72,8 @@ const CompShowRegister = ({ reportFnRef }) => {
     try {
       const now = new Date();
       const horaActual = now.toTimeString().slice(0, 5);
-      await axios.post(`${URI_SALIDAS}`, { entradaId, horaSalida: horaActual });
-      getBlogs(page, selectedMonth, selectedYear, searchDpi, searchEmpresa);
+      await api.post('/salidas', { entradaId, horaSalida: horaActual });
+      getEntradas(page);
     } catch (err) {
       console.error("Error al marcar salida:", err);
       alert("No se pudo registrar salida. Intenta nuevamente.");
@@ -86,16 +95,32 @@ const CompShowRegister = ({ reportFnRef }) => {
 
   const handleSearchDpi = (e) => setSearchDpi(e.target.value);
   const handleSearchEmpresa = (e) => setSearchEmpresa(e.target.value);
+  const handleStartDate = (e) => setStartDate(e.target.value);
+  const handleEndDate = (e) => setEndDate(e.target.value);
 
+  // Limpiar todos los filtros
+  const clearFilters = () => {
+    setSearchDpi("");
+    setSearchEmpresa("");
+    setSelectedMonth("");
+    setSelectedYear("");
+    setStartDate("");
+    setEndDate("");
+    setPage(1);
+  };
+
+  // Función para imprimir reporte
   const imprimirReporte = useCallback(async () => {
     try {
-      const res = await axios.get(`${URI_ENTRADAS}`, {
+      const res = await api.get("/entradas", {
         params: {
           month: selectedMonth,
           year: selectedYear,
           all: true,
           dpi: searchDpi,
-          empresa: searchEmpresa
+          empresa: searchEmpresa,
+          startDate,
+          endDate
         }
       });
 
@@ -133,20 +158,20 @@ const CompShowRegister = ({ reportFnRef }) => {
               <tbody>
       `;
 
-      todasEntradas.forEach(blog => {
-        const ultimaSalida = blog.salidas?.length ? blog.salidas[blog.salidas.length - 1].horaSalida : "";
+      todasEntradas.forEach(entry => {
+        const ultimaSalida = entry.salidas?.length ? entry.salidas[entry.salidas.length - 1].horaSalida : "";
         html += `
           <tr>
-            <td>${blog.numero}</td>
-            <td>${new Date(blog.fecha).toLocaleDateString()}</td>
-            <td>${blog.horaEntrada}</td>
+            <td>${entry.numero}</td>
+            <td>${new Date(entry.fecha).toLocaleDateString()}</td>
+            <td>${entry.horaEntrada}</td>
             <td>${ultimaSalida}</td>
-            <td>${blog.nombre}</td>
-            <td>${blog.dpi}</td>
-            <td>${blog.fotoDPI ? `<img src="${blog.fotoDPI}" />` : "No disponible"}</td>
-            <td>${blog.motivo}</td>
-            <td>${blog.empresa}</td>
-            <td>${blog.firma ? `<img src="${blog.firma}" />` : "No disponible"}</td>
+            <td>${entry.nombre}</td>
+            <td>${entry.dpi}</td>
+            <td>${entry.fotoDPI ? `<img src="${entry.fotoDPI}" />` : "No disponible"}</td>
+            <td>${entry.motivo}</td>
+            <td>${entry.empresa}</td>
+            <td>${entry.firma ? `<img src="${entry.firma}" />` : "No disponible"}</td>
           </tr>
         `;
       });
@@ -160,7 +185,7 @@ const CompShowRegister = ({ reportFnRef }) => {
       console.error("Error al generar reporte:", error);
       alert("No se pudo generar el reporte. Intenta de nuevo.");
     }
-  }, [selectedMonth, selectedYear, searchDpi, searchEmpresa]);
+  }, [selectedMonth, selectedYear, searchDpi, searchEmpresa, startDate, endDate]);
 
   useEffect(() => {
     reportFnRef.current = imprimirReporte;
@@ -174,23 +199,22 @@ const CompShowRegister = ({ reportFnRef }) => {
           <div className="mb-3 d-flex flex-wrap gap-2">
             <div>
               <label>DPI:</label>
-              <input
-                type="text"
-                className="form-control"
-                value={searchDpi}
-                onChange={handleSearchDpi}
-                placeholder="Buscar por DPI"
-              />
+              <input type="text" className="form-control" value={searchDpi} onChange={handleSearchDpi} placeholder="Buscar por DPI" />
             </div>
             <div>
               <label>Empresa:</label>
-              <input
-                type="text"
-                className="form-control"
-                value={searchEmpresa}
-                onChange={handleSearchEmpresa}
-                placeholder="Buscar por Empresa"
-              />
+              <input type="text" className="form-control" value={searchEmpresa} onChange={handleSearchEmpresa} placeholder="Buscar por Empresa" />
+            </div>
+            <div>
+              <label>Fecha inicio:</label>
+              <input type="date" className="form-control" value={startDate} onChange={handleStartDate} />
+            </div>
+            <div>
+              <label>Fecha fin:</label>
+              <input type="date" className="form-control" value={endDate} onChange={handleEndDate} />
+            </div>
+            <div className="align-self-end">
+              <button className="btn btn-secondary btn-sm" onClick={clearFilters}>Limpiar filtros</button>
             </div>
           </div>
 
@@ -212,7 +236,7 @@ const CompShowRegister = ({ reportFnRef }) => {
 
           {/* Tabla escritorio */}
           <div className="d-none d-md-block" style={{ overflowX: "auto" }}>
-            <table className="table table-striped-columns table-responsive">
+            <table className="table table-striped table-hover">
               <thead className="table-primary">
                 <tr>
                   <th>No.</th><th>Fecha</th><th>Hora Entrada</th><th>Hora Salida</th>
@@ -221,139 +245,51 @@ const CompShowRegister = ({ reportFnRef }) => {
                 </tr>
               </thead>
               <tbody>
-                {blogs.map(blog => {
-                  const ultimaSalida = blog.salidas?.length ? blog.salidas[blog.salidas.length - 1].horaSalida : "";
+                {entradas.map(entry => {
+                  const ultimaSalida = entry.salidas?.length ? entry.salidas[entry.salidas.length - 1].horaSalida : "";
                   return (
-                    <tr key={blog._id}>
-                      <td>{blog.numero}</td>
-                      <td>{new Date(blog.fecha).toLocaleDateString()}</td>
-                      <td>{blog.horaEntrada}</td>
+                    <tr key={entry._id}>
+                      <td>{entry.numero}</td>
+                      <td>{new Date(entry.fecha).toLocaleDateString()}</td>
+                      <td>{entry.horaEntrada}</td>
                       <td>{ultimaSalida}</td>
-                      <td>{blog.nombre}</td>
-                      <td>{blog.dpi}</td>
-                      <td>
-                        {blog.fotoDPI ? (
-                          <img
-                            src={blog.fotoDPI}
-                            alt="Foto DPI"
-                            style={{
-                              width: "60px",
-                              height: "60px",
-                              objectFit: "cover",
-                              borderRadius: "8px",
-                              boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
-                              cursor: "pointer",
-                              transition: "transform 0.2s"
-                            }}
-                            onMouseOver={e => e.currentTarget.style.transform = "scale(1.05)"}
-                            onMouseOut={e => e.currentTarget.style.transform = "scale(1)"}
-                            onClick={() => handleImageClick(blog.fotoDPI)}
-                          />
-                        ) : <span style={{ color: "#999" }}>No disponible</span>}
-                      </td>
-                      <td>{blog.motivo}</td>
-                      <td>{blog.empresa}</td>
-                      <td>
-                        {blog.firma ? (
-                          <img
-                            src={blog.firma}
-                            alt="Firma"
-                            style={{
-                              width: "80px",
-                              height: "50px",
-                              objectFit: "contain",
-                              borderRadius: "6px",
-                              boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
-                              cursor: "pointer",
-                              transition: "transform 0.2s"
-                            }}
-                            onMouseOver={e => e.currentTarget.style.transform = "scale(1.05)"}
-                            onMouseOut={e => e.currentTarget.style.transform = "scale(1)"}
-                            onClick={() => handleImageClick(blog.firma)}
-                          />
-                        ) : <span style={{ color: "#999" }}>No disponible</span>}
-                      </td>
+                      <td>{entry.nombre}</td>
+                      <td>{entry.dpi}</td>
+                      <td>{entry.fotoDPI ? <img src={entry.fotoDPI} alt="DPI" style={{ width: "60px", height: "60px", objectFit: "cover", borderRadius: "8px", cursor: "pointer" }} onClick={() => handleImageClick(entry.fotoDPI)} /> : "No disponible"}</td>
+                      <td>{entry.motivo}</td>
+                      <td>{entry.empresa}</td>
+                      <td>{entry.firma ? <img src={entry.firma} alt="Firma" style={{ width: "80px", height: "50px", objectFit: "contain", cursor: "pointer" }} onClick={() => handleImageClick(entry.firma)} /> : "No disponible"}</td>
                       <td className="d-flex flex-column gap-1">
-                        {!ultimaSalida && (
-                          <button onClick={() => marcarSalida(blog._id)} className="btn btn-info btn-sm rounded">
-                            Marcar Salida
-                          </button>
-                        )}
-                        <button onClick={() => deleteBlog(blog._id)} className="btn btn-danger btn-sm rounded">
-                          Delete
-                        </button>
+                        {!ultimaSalida && <button className="btn btn-info btn-sm rounded" onClick={() => marcarSalida(entry._id)}>Marcar Salida</button>}
+                        <button className="btn btn-danger btn-sm rounded" onClick={() => deleteEntrada(entry._id)}>Delete</button>
                       </td>
                     </tr>
-                  );
+                  )
                 })}
               </tbody>
             </table>
           </div>
 
-          {/* Tarjetas móviles */}
+          {/* Tarjetas móviles / tablet */}
           <div className="d-block d-md-none">
-            {blogs.map(blog => {
-              const ultimaSalida = blog.salidas?.length ? blog.salidas[blog.salidas.length - 1].horaSalida : "";
+            {entradas.map(entry => {
+              const ultimaSalida = entry.salidas?.length ? entry.salidas[entry.salidas.length - 1].horaSalida : "";
               return (
-                <div key={blog._id} className="card mb-3 shadow-sm" style={{ backgroundColor: "#f8f9fa", borderRadius: "10px" }}>
+                <div key={entry._id} className="card mb-3 shadow-sm" style={{ borderRadius: "10px" }}>
                   <div className="card-body p-3">
-                    <p><strong>No:</strong> {blog.numero}</p>
-                    <p><strong>Fecha:</strong> {new Date(blog.fecha).toLocaleDateString()}</p>
-                    <p><strong>Hora Entrada:</strong> {blog.horaEntrada}</p>
+                    <p><strong>No:</strong> {entry.numero}</p>
+                    <p><strong>Fecha:</strong> {new Date(entry.fecha).toLocaleDateString()}</p>
+                    <p><strong>Hora Entrada:</strong> {entry.horaEntrada}</p>
                     <p><strong>Hora Salida:</strong> {ultimaSalida}</p>
-                    <p><strong>Nombre:</strong> {blog.nombre}</p>
-                    <p><strong>DPI:</strong> {blog.dpi}</p>
-                    <p><strong>Foto DPI:</strong><br/>
-                      {blog.fotoDPI ? (
-                        <img
-                          src={blog.fotoDPI}
-                          alt="Foto DPI"
-                          style={{
-                            width: "100px",
-                            height: "100px",
-                            objectFit: "cover",
-                            borderRadius: "8px",
-                            boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
-                            cursor: "pointer",
-                            transition: "transform 0.2s"
-                          }}
-                          onMouseOver={e => e.currentTarget.style.transform = "scale(1.05)"}
-                          onMouseOut={e => e.currentTarget.style.transform = "scale(1)"}
-                          onClick={() => handleImageClick(blog.fotoDPI)}
-                        />
-                      ) : <span style={{ color: "#999" }}>No disponible</span>}
-                    </p>
-                    <p><strong>Motivo:</strong> {blog.motivo}</p>
-                    <p><strong>Empresa:</strong> {blog.empresa}</p>
-                    <p><strong>Firma:</strong><br/>
-                      {blog.firma ? (
-                        <img
-                          src={blog.firma}
-                          alt="Firma"
-                          style={{
-                            width: "120px",
-                            height: "70px",
-                            objectFit: "contain",
-                            borderRadius: "6px",
-                            boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
-                            cursor: "pointer",
-                            transition: "transform 0.2s"
-                          }}
-                          onMouseOver={e => e.currentTarget.style.transform = "scale(1.05)"}
-                          onMouseOut={e => e.currentTarget.style.transform = "scale(1)"}
-                          onClick={() => handleImageClick(blog.firma)}
-                        />
-                      ) : <span style={{ color: "#999" }}>No disponible</span>}
-                    </p>
+                    <p><strong>Nombre:</strong> {entry.nombre}</p>
+                    <p><strong>DPI:</strong> {entry.dpi}</p>
+                    <p><strong>Foto DPI:</strong><br/>{entry.fotoDPI ? <img src={entry.fotoDPI} alt="DPI" style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "8px", cursor: "pointer" }} onClick={() => handleImageClick(entry.fotoDPI)} /> : "No disponible"}</p>
+                    <p><strong>Motivo:</strong> {entry.motivo}</p>
+                    <p><strong>Empresa:</strong> {entry.empresa}</p>
+                    <p><strong>Firma:</strong><br/>{entry.firma ? <img src={entry.firma} alt="Firma" style={{ width: "120px", height: "70px", objectFit: "contain", cursor: "pointer" }} onClick={() => handleImageClick(entry.firma)} /> : "No disponible"}</p>
                     <div className="d-flex flex-wrap gap-2">
-                      {!ultimaSalida && (
-                        <button onClick={() => marcarSalida(blog._id)} className="btn btn-info btn-sm flex-grow-1 rounded">
-                          Marcar Salida
-                        </button>
-                      )}
-                      <button onClick={() => deleteBlog(blog._id)} className="btn btn-danger btn-sm flex-grow-1 rounded">
-                        Delete
-                      </button>
+                      {!ultimaSalida && <button className="btn btn-info btn-sm flex-grow-1 rounded" onClick={() => marcarSalida(entry._id)}>Marcar Salida</button>}
+                      <button className="btn btn-danger btn-sm flex-grow-1 rounded" onClick={() => deleteEntrada(entry._id)}>Delete</button>
                     </div>
                   </div>
                 </div>
@@ -363,30 +299,15 @@ const CompShowRegister = ({ reportFnRef }) => {
 
           {/* Paginación */}
           <div className="d-flex justify-content-between align-items-center mt-3">
-            <button className="btn btn-secondary btn-sm" onClick={handlePrevPage} disabled={page === 1}>Mes anterior</button>
+            <button className="btn btn-secondary btn-sm" onClick={handlePrevPage} disabled={page === 1}>Anterior</button>
             <span>Página {page} de {totalPages}</span>
-            <button className="btn btn-secondary btn-sm" onClick={handleNextPage} disabled={page === totalPages}>Mes siguiente</button>
+            <button className="btn btn-secondary btn-sm" onClick={handleNextPage} disabled={page === totalPages}>Siguiente</button>
           </div>
 
           {/* Zoom Imagen */}
           {zoomImg && (
-            <div
-              onClick={closeZoom}
-              style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                backgroundColor: "rgba(0, 0, 0, 0.8)",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                zIndex: 1000,
-                cursor: "zoom-out"
-              }}
-            >
-              <img src={zoomImg} alt="Zoom" style={{ maxWidth: "90%", maxHeight: "90%", borderRadius: "8px" }} />
+            <div onClick={closeZoom} style={{ position: "fixed", top:0, left:0, width:"100%", height:"100%", backgroundColor:"rgba(0,0,0,0.8)", display:"flex", justifyContent:"center", alignItems:"center", zIndex:1000, cursor:"zoom-out" }}>
+              <img src={zoomImg} alt="Zoom" style={{ maxWidth:"90%", maxHeight:"90%", borderRadius:"8px" }} />
             </div>
           )}
         </div>

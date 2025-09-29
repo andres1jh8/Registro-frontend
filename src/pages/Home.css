@@ -1,0 +1,80 @@
+/* src/pages/Home.css */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+
+.home-page {
+  position: relative;
+  width: 100%;
+  min-height: calc(100vh - 110px); /* altura de main-content menos header */
+  display: flex;
+  flex-direction: column;
+}
+
+.home-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("../assets/CGCz13.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(8px); /* fondo borroso */
+  z-index: 1;
+}
+
+.home-overlay {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* centra verticalmente */
+  align-items: center;     /* centra horizontalmente */
+  text-align: center;
+  padding: 20px;
+  box-sizing: border-box;
+  color: #fff;
+  background-color: rgba(0,0,0,0.3); /* oscurece un poco el fondo para texto visible */
+}
+
+.home-content {
+  max-width: 800px;
+}
+
+.home-content h1 {
+  font-size: 3rem;
+  margin-bottom: 15px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95); /* casi opaco pero no borroso */
+}
+
+.home-content p {
+  font-size: 1.2rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.home-footer {
+  text-align: center;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 20px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .home-content h1 { font-size: 2.5rem; }
+  .home-content p { font-size: 1.1rem; }
+}
+
+@media (max-width: 768px) {
+  .home-content h1 { font-size: 2rem; }
+  .home-content p { font-size: 1rem; }
+}
+
+@media (max-width: 480px) {
+  .home-content h1 { font-size: 1.7rem; }
+  .home-content p { font-size: 0.9rem; }
+}

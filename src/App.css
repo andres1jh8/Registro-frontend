@@ -80,6 +80,7 @@ html, body, #root {
   color: white;
   display: flex;
   flex-direction: column;
+  justify-content: space-between; /* 🔑 empuja logout hacia abajo */
   position: fixed;
   left: 0;
   top: 0;
@@ -95,12 +96,18 @@ html, body, #root {
   width: 200px;
 }
 
-/* Contenedor de botones: empieza debajo del header */
+/* Contenedor de botones superiores */
 .sidebar .btn-container {
   display: flex;
   flex-direction: column;
   gap: 10px;
   margin-top: 110px; /* Altura del header */
+  flex: 1; /* 🔑 ocupa espacio disponible */
+}
+
+/* Contenedor inferior (logout) */
+.sidebar .logout-container {
+  margin-bottom: 20px;
 }
 
 /* Botones */
@@ -157,7 +164,7 @@ html, body, #root {
 .btn-icon {
   width: 24px;
   height: 24px;
-  display: block; /* Asegura centrado vertical */
+  display: block;
 }
 
 /* Tabla */
@@ -295,4 +302,216 @@ tr:hover {
   .sidebar:hover {
     width: 150px;
   }
+}
+
+/* ... el resto de tu CSS igual ... */
+
+/* Contenedor inferior (logout) */
+.sidebar .logout-container {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Botón de logout */
+.sidebar .logout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background-color: #C2AB5E;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+/* Ícono de logout centrado */
+.sidebar .logout-btn .btn-icon {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+/* Texto oculto por defecto */
+.sidebar .logout-btn span {
+  display: none;
+}
+
+/* Mostrar texto al hover */
+.sidebar:hover .logout-btn span {
+  display: inline;
+}
+
+/* Hover en logout */
+.sidebar .logout-btn:hover {
+  background-color: #a68d4b;
+  transform: translateX(3px);
+}
+
+
+
+/* ===================== */
+/* Login & Register Page */
+/* ===================== */
+
+.login-container,
+.register-container {
+  max-width: 400px;
+  margin: 80px auto;
+  padding: 30px 25px;
+  padding-bottom: 50px; /* ⚡ padding extra para teclado táctil */
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+  text-align: center;
+
+  touch-action: manipulation; /* ⚡ permite interacción táctil */
+  -webkit-overflow-scrolling: touch; /* ⚡ iOS scroll suave */
+}
+
+/* Inputs */
+.login-container input,
+.register-container input {
+  width: 100%;
+  padding: 10px 12px;
+  margin: 8px 0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Inputs enfocados */
+.login-container input:focus,
+.register-container input:focus {
+  border-color: #C2AB5E;
+  box-shadow: 0 0 5px rgba(194, 171, 94, 0.6);
+}
+
+/* Botones */
+.login-container button,
+.register-container button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 12px;
+  background-color: #C2AB5E;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.login-container button:hover,
+.register-container button:hover {
+  background-color: #a68d4b;
+  transform: translateY(-2px);
+}
+
+/* Mensajes */
+.login-container p,
+.register-container p {
+  margin-top: 15px;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+/* Links */
+.login-container a,
+.register-container a {
+  color: #C2AB5E;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.login-container a:hover,
+.register-container a:hover {
+  text-decoration: underline;
+}
+
+/* ===================== */
+/* Main content adjustments for mobile/tablet */
+/* ===================== */
+
+.App-body {
+  display: flex;
+  min-height: auto; /* ⚡ antes: calc(100vh - 110px) */
+  flex-wrap: wrap; /* ⚡ permite que el contenido se adapte */
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 60px; /* ancho del sidebar cerrado */
+  padding: 20px;
+  transition: margin-left 0.3s ease;
+
+  overflow-y: auto; /* ⚡ permite scroll cuando aparece teclado */
+  -webkit-overflow-scrolling: touch; /* ⚡ iOS scroll suave */
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .App-title {
+    font-size: 1.4rem;
+  }
+
+  .App-logo {
+    height: 50px;
+  }
+
+  .sidebar {
+    width: 50px;
+    top: 80px;
+    padding: 10px;
+  }
+
+  .main-content {
+    margin-left: 0;
+    padding: 10px;
+  }
+
+  .sidebar:hover {
+    width: 150px;
+  }
+}
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.1); /* Fondo sutil */
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: background 0.3s ease;
+}
+
+.user-info:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.home-user-icon {
+  width: 32px;
+  height: 32px;
+  padding: 6px;
+  background: #C2AB5E;   /* Azul elegante */
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.3s ease;
+}
+
+.home-user-icon:hover {
+  transform: scale(1.1);
+  background: #a68d4b;   /* Azul más oscuro al pasar el mouse */
+}
+
+.user-info span {
+  font-size: 1.2rem;   /* Texto más grande */
+  font-weight: 600;    /* Semi-negrita */
+  color: #fff;         /* Blanco para contraste */
+  letter-spacing: 0.5px;
 }

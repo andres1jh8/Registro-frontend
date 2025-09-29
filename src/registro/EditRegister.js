@@ -1,8 +1,8 @@
-import axios from "axios";
+import api from "../utils/axios";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-const URI = `${process.env.REACT_APP_API_URL}/api/salidas`;
+const URI = "/salidas";
 
 
 const CompEditBlog = () => {
@@ -16,7 +16,7 @@ const CompEditBlog = () => {
   useEffect(() => {
     const getSalidaByEntradaId = async () => {
       try {
-        const res = await axios.get(`${URI}/entrada/${id}`);
+        const res = await api.get(`${URI}/entrada/${id}`);
         if (res.data && res.data.horaSalida) {
           setHoraSalida(res.data.horaSalida);
         } else { 

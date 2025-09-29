@@ -1,8 +1,8 @@
-import axios from "axios";
+import api from "../utils/axios";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const URI = `${process.env.REACT_APP_API_URL}/api/entradas`;
+const URI = "/entradas";
 
 const CompCreateBlog = () => {
   const now = new Date();
@@ -243,8 +243,8 @@ const CompCreateBlog = () => {
       if (firmaBlob) formData.append("firma", firmaBlob, "firma.png");
       if (fotoDPI) formData.append("fotoDPI", fotoDPI);
 
-      await axios.post(URI, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      await api.post(URI, formData, {
+        headers: { "Content-Type": "multipart/form-data" }
       });
 
       alert("✅ Entrada registrada con éxito");
