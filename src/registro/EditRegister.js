@@ -1,9 +1,9 @@
+// src/components/editRegister.js
 import api from "../utils/axios";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 const URI = "/salidas";
-
 
 const CompEditBlog = () => {
   const { id } = useParams(); // id de la entrada relacionada
@@ -17,12 +17,17 @@ const CompEditBlog = () => {
     const getSalidaByEntradaId = async () => {
       try {
         const res = await api.get(`${URI}/entrada/${id}`);
-        if (res.data && res.data.horaSalida) {
-          setHoraSalida(res.data.horaSalida);
-        } else { 
-          // Si no hay salida, se inicializa con la hora actual
+        if (res.data && res.data.data && res.data.data.horaSalida) {
+          // Si ya hay hora de salida registrada
+          setHoraSalida(res.data.data.horaSalida);
+        } else {
+          // Si no hay salida, inicializar con hora local
           const now = new Date();
-          const horaActual = now.toTimeString().slice(0, 5); // HH:MM
+          const horaActual = now.toLocaleTimeString('es-GT', {
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit'
+          });
           setHoraSalida(horaActual);
         }
       } catch (err) {
@@ -41,17 +46,19 @@ const CompEditBlog = () => {
     }
 
     try {
-      // Intentar actualizar la salida si ya existe
-      await axios.put(`${URI}/${id}`, { horaSalida });
+      // Intentar actualizar o crear la salida
+      await api.put(`${URI}/${id}`, { horaSalida });
       alert("Hora de salida registrada correctamente");
       navigate("/");
     } catch (err) {
       console.error("Error al actualizar la salida:", err);
-      alert("Error al guardar la salida, intenta de nuevo");
+      alert(
+        err.response?.data?.message || "Error al guardar la salida, intenta de nuevo"
+      );
     }
   };
 
-  return ( 
+  return (
     <div className="container">
       <h3>Registrar Hora de Salida</h3>
       <form onSubmit={updateSalida}>

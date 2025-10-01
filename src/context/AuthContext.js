@@ -1,5 +1,4 @@
-//src/context/AuthContext.js
-
+// src/context/AuthContext.js
 import React, { createContext, useState, useEffect } from "react";
 
 export const AuthContext = createContext();
@@ -29,7 +28,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    // Si el token expiró o se borró manualmente, limpiamos el estado
     if (!token) logout();
   }, [token]);
 

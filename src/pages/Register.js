@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import api from "../utils/axios";
+import { FaEye, FaEyeSlash } from "react-icons/fa"; // 👈 usamos íconos bonitos
 
 const Register = () => {
   const [form, setForm] = useState({
@@ -19,7 +20,10 @@ const Register = () => {
   const [error, setError] = useState({});
   const [adminValid, setAdminValid] = useState(false);
   const [checkingAdmin, setCheckingAdmin] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+
+  // 👇 estados para mostrar/ocultar contraseña
+  const [showPasswordUser, setShowPasswordUser] = useState(false);
+  const [showPasswordAdmin, setShowPasswordAdmin] = useState(false);
 
   const adminTimeout = useRef(null);
 
@@ -27,11 +31,8 @@ const Register = () => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
     setMsg("");
-
-    // Validaciones en tiempo real
     validateField(name, value);
 
-    // Solo debounce para admin
     if (name === "usernameAdmin" || name === "passwordAdmin") {
       checkAdminDebounced(name, value);
     }
@@ -45,7 +46,7 @@ const Register = () => {
         break;
       case "password":
         const pwdRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-        setError(prev => ({ ...prev, password: pwdRegex.test(value) ? "" : "Contraseña debe tener mínimo 8 caracteres, letras y números" }));
+        setError(prev => ({ ...prev, password: pwdRegex.test(value) ? "" : "Mínimo 8 caracteres, letras y números" }));
         break;
       case "phone":
         const phoneRegex = /^\d{8}$/;
@@ -95,7 +96,6 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validar campos requeridos
     let hasErrors = false;
     Object.keys(form).forEach(key => {
       if (!form[key] && key !== "usernameAdmin" && key !== "passwordAdmin") {
@@ -151,17 +151,42 @@ const Register = () => {
         <h3>Datos del nuevo usuario</h3>
         <input name="name" placeholder="Nombre" value={form.name} onChange={handleChange} style={{ borderColor: error.name ? "red" : "green" }} />
         {error.name && <small style={{ color: "red" }}>{error.name}</small>}
+        
         <input name="surname" placeholder="Apellido" value={form.surname} onChange={handleChange} style={{ borderColor: error.surname ? "red" : "green" }} />
         {error.surname && <small style={{ color: "red" }}>{error.surname}</small>}
+        
         <input name="username" placeholder="Usuario" value={form.username} onChange={handleChange} style={{ borderColor: error.username ? "red" : "green" }} />
         {error.username && <small style={{ color: "red" }}>{error.username}</small>}
+        
         <input name="email" type="email" placeholder="Correo" value={form.email} onChange={handleChange} style={{ borderColor: error.email ? "red" : "green" }} />
         {error.email && <small style={{ color: "red" }}>{error.email}</small>}
-        <input name="password" type={showPassword ? "text" : "password"} placeholder="Contraseña" value={form.password} onChange={handleChange} style={{ borderColor: error.password ? "red" : "green" }} />
+
+        {/* Campo de contraseña con ojito */}
+        <div style={{ position: "relative" }}>
+          <input
+            name="password"
+            type={showPasswordUser ? "text" : "password"}
+            placeholder="Contraseña"
+            value={form.password}
+            onChange={handleChange}
+            style={{ borderColor: error.password ? "red" : "green", width: "100%", paddingRight: "30px" }}
+          />
+          <span
+            onClick={() => setShowPasswordUser(!showPasswordUser)}
+            style={{
+              position: "absolute",
+              right: "8px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              cursor: "pointer",
+              color: "gray"
+            }}
+          >
+            {showPasswordUser ? <FaEyeSlash /> : <FaEye />}
+          </span>
+        </div>
         {error.password && <small style={{ color: "red" }}>{error.password}</small>}
-        <button type="button" onClick={() => setShowPassword(!showPassword)}>
-          {showPassword ? "Ocultar" : "Mostrar"} contraseña
-        </button>
+
         <input name="phone" placeholder="Teléfono" value={form.phone} onChange={handleChange} style={{ borderColor: error.phone ? "red" : "green" }} />
         {error.phone && <small style={{ color: "red" }}>{error.phone}</small>}
 
@@ -175,7 +200,32 @@ const Register = () => {
 
         <h3>Autorización del Administrador</h3>
         <input name="usernameAdmin" placeholder="Usuario Admin" value={form.usernameAdmin} onChange={handleChange} />
-        <input name="passwordAdmin" type="password" placeholder="Contraseña del Admin" value={form.passwordAdmin} onChange={handleChange} />
+
+        {/* Campo de contraseña admin con ojito también */}
+        <div style={{ position: "relative" }}>
+          <input
+            name="passwordAdmin"
+            type={showPasswordAdmin ? "text" : "password"}
+            placeholder="Contraseña del Admin"
+            value={form.passwordAdmin}
+            onChange={handleChange}
+            style={{ width: "100%", paddingRight: "30px" }}
+          />
+          <span
+            onClick={() => setShowPasswordAdmin(!showPasswordAdmin)}
+            style={{
+              position: "absolute",
+              right: "8px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              cursor: "pointer",
+              color: "gray"
+            }}
+          >
+            {showPasswordAdmin ? <FaEyeSlash /> : <FaEye />}
+          </span>
+        </div>
+
         {checkingAdmin && <p style={{ color: "orange" }}>Verificando admin...</p>}
         {adminValid && !checkingAdmin && <p style={{ color: "green" }}>Administrador válido ✅</p>}
         {error.admin && <p style={{ color: "red" }}>{error.admin}</p>}

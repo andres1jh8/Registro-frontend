@@ -1,7 +1,9 @@
 import api from "../utils/axios";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 
 const CompShowRegister = ({ reportFnRef }) => {
+  const { user } = useContext(AuthContext); // <-- obtenemos el usuario y su rol
   const [entradas, setEntradas] = useState([]);
   const [zoomImg, setZoomImg] = useState(null);
   const [page, setPage] = useState(1);
@@ -15,6 +17,7 @@ const CompShowRegister = ({ reportFnRef }) => {
   const [searchEmpresa, setSearchEmpresa] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [mensaje, setMensaje] = useState(""); // <-- mensaje de rol
 
   const monthNames = [
     "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -62,6 +65,10 @@ const CompShowRegister = ({ reportFnRef }) => {
   }, [page, getEntradas]);
 
   const deleteEntrada = async (id) => {
+    if (user.role !== "Admin") {  // <-- control de rol
+      setMensaje("No tienes permisos para eliminar entradas");
+      return;
+    }
     if (window.confirm("¿Seguro que deseas eliminar esta entrada?")) {
       await api.delete(`/entradas/${id}`);
       getEntradas(page);
@@ -69,16 +76,17 @@ const CompShowRegister = ({ reportFnRef }) => {
   };
 
   const marcarSalida = async (entradaId) => {
-    try {
-      const now = new Date();
-      const horaActual = now.toTimeString().slice(0, 5);
-      await api.post('/salidas', { entradaId, horaSalida: horaActual });
-      getEntradas(page);
-    } catch (err) {
-      console.error("Error al marcar salida:", err);
-      alert("No se pudo registrar salida. Intenta nuevamente.");
-    }
-  };
+  try {
+    const now = new Date();
+    const horaActual = now.toTimeString().slice(0, 5);
+    await api.post('/salidas', { entradaId, horaSalida: horaActual });
+    getEntradas(page);
+  } catch (err) {
+    console.error("Error al marcar salida:", err);
+    alert("No se pudo registrar salida. Intenta nuevamente.");
+  }
+};
+
 
   const handleImageClick = (src) => setZoomImg(src);
   const closeZoom = () => setZoomImg(null);
@@ -98,7 +106,6 @@ const CompShowRegister = ({ reportFnRef }) => {
   const handleStartDate = (e) => setStartDate(e.target.value);
   const handleEndDate = (e) => setEndDate(e.target.value);
 
-  // Limpiar todos los filtros
   const clearFilters = () => {
     setSearchDpi("");
     setSearchEmpresa("");
@@ -107,6 +114,7 @@ const CompShowRegister = ({ reportFnRef }) => {
     setStartDate("");
     setEndDate("");
     setPage(1);
+    setMensaje(""); // <-- limpiar mensaje al limpiar filtros
   };
 
   // Función para imprimir reporte
@@ -193,6 +201,8 @@ const CompShowRegister = ({ reportFnRef }) => {
 
   return (
     <div className="container py-3">
+      {mensaje && <div className="alert alert-warning">{mensaje}</div>} {/* <-- mensaje de rol */}
+
       <div className="row">
         <div className="col">
           {/* Filtros */}
